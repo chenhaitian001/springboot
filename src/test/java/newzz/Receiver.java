@@ -12,7 +12,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 
 public class Receiver {
     public static void main(String[] args) {
-        // ConnectionFactory ：连接工厂，JMS 用它创建连接
+        // ConnectionFactory ：连接工厂，JMS 用它创建连接水电费
         ConnectionFactory connectionFactory;
         // Connection ：JMS 客户端到JMS Provider 的连接
         Connection connection = null;
