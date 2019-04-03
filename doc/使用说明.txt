@@ -1,0 +1,24 @@
+
+*******定时任务每小时整点执行一次，默认执行 整点前2小时数据（系统会自动去重）*****
+
+使用前 ：数据源修改  根目录  ->spring-service.xml （需重新配置）
+<bean id="dataSource"
+		class="com.alibaba.druid.pool.DruidDataSource">
+		<property name="url" value="jdbc:mysql://localhost:3306/ruvs_1.0?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=GMT%2B8&amp;useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10"/>
+		<property name="username" value="root"/>
+		<property name="password" value="123456"/>
+</bean>
+
+接口地址配置路径：根目录 -> config.txt  （默认无需配置）
+
+日志配置路径 ：log4j.properties （默认无需配置）
+
+******************************************************************************************************************************************************************************************************************************************
+
+1、默认扫描时间不需配置 （默认无需配置）
+2、若出现断网  需查看日志 inorout.log 判断问题点 ，必要时设置扫描时间
+3、设置扫描时间格式：2018-12-6 12:08:30 （注意中英文大小写！！！！！！！）
+4、扫描时间重新设置需停止服务，重启生效。
+5、跑完数据需  停止服务 ，把扫描时间清空 ，再重启服务！！！！
+
+

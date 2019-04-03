@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.four.server.dsm.RecordDsm">
+
+    <insert id="insertRecords">
+        INSERT INTO stat_card (ng_user_id, ng_dev_id, ts_card, bt_native ,sz_photo_path,
+        ng_creator, ts_create)
+        SELECT userId, devId, card,isNative, photoPath, creatorId, createDate
+        FROM (
+        <foreach collection="records" item="record" open="(" separator=" UNION all" close=")">
+            SELECT #{record.userId} as userId,#{record.devId} as devId,
+            #{record.timestamp, jdbcType=TIMESTAMP} as card,#{record.isNative} as isNative,
+            #{record.photoPath} as photoPath, #{record.creatorId} as creatorId,
+            #{record.create,jdbcType=DATE} as createDate
+        </foreach>)
+        r
+        WHERE NOT EXISTS
+        (SELECT 1 FROM stat_card WHERE ng_user_id = r.userId AND ts_card = r.card)
+    </insert>
+
+    <sql id="select_user">
+        select u.ng_id as id,
+        u.sz_employ_id as employId,
+        u.sz_name as 'name',
+        sz_user_name as userName,
+        u.sz_card_id as cardId,
+        u.nt_user_state as state,
+        u.dt_entry as entryDate
+        from sys_user u
+        left join sys_user_branch ub on u.ng_id = ub.ng_user_id
+        left join sys_branch b on ub.ng_branch_id = b.ng_id
+    </sql>
+
+    <select id="getUserByCardId" resultType="userTpm">
+        <include refid="select_user"/>
+        where u.sz_card_id = #{cardId}
+        and u.nt_user_state >= 0
+        limit 1
+    </select>
+
+    <select id="getUserByCardIds" resultType="userTpm">
+        <include refid="select_user"/>
+        WHERE u.sz_card_id in
+        <foreach collection="cardIds" item="cardId" open="(" separator="," index="index" close=")">
+            #{cardId}
+        </foreach>
+        and u.nt_user_state >= 0
+    </select>
+
+</mapper>

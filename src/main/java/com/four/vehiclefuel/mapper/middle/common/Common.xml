@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hanvon.iface.dsm.common.Common">
+        <!-- SQL分页头部 -->
+        <sql id="pager_head">
+                SELECT * FROM (
+                SELECT *, ROW_NUMBER() OVER (
+        </sql>
+
+        <!-- SQL分页中部 -->
+        <sql id="pager_middle">
+                ) as row_num
+                FROM (
+        </sql>
+
+        <!-- SQL分页尾部 -->
+        <sql id="pager_tail">
+                ) ppp ) vvv
+                <choose>
+                        <when test="pager != null">
+                                WHERE vvv.row_num BETWEEN ${(pager.pageIndex - 1) * pager.pageSize+1} AND ${pager.pageIndex * pager.pageSize}
+                        </when>
+                        <otherwise>
+                                WHERE vvv.row_num BETWEEN ${recordPerPage * (requestPage - 1)+1} AND ${recordPerPage * requestPage}
+                        </otherwise>
+                </choose>
+        </sql>
+
+        <!--
+        使用方法举例：
+        <include refid="com.hanvon.iface.dsm.common.Common.pager_head"/>
+        SQL排序代码，例如：ORDER BY xxx DESC, xxx DESC
+        <include refid="com.hanvon.i
+        face.dsm.common.Common.pager_middle"/>
+        正常的SQL语句部分，例如：
+        SELECT a,b,c FROM table WHERE xxx
+        <include refid="com.hanvon.iface.dsm.common.Common.pager_tail"/>
+        -->
+</mapper>

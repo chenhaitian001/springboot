@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<beans xmlns="http://www.springframework.org/schema/beans"    
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"   
+    xmlns:p="http://www.springframework.org/schema/p"  
+    xmlns:aop="http://www.springframework.org/schema/aop"   
+    xmlns:context="http://www.springframework.org/schema/context"  
+    xmlns:jee="http://www.springframework.org/schema/jee"  
+    xmlns:tx="http://www.springframework.org/schema/tx"  
+    xmlns:task="http://www.springframework.org/schema/task" 
+    xsi:schemaLocation="    
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd  
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd  
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd  
+        http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd  
+        http://www.springframework.org/schema/task  http://www.springframework.org/schema/task/spring-task.xsd  
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd"    
+		>
+
+     <context:component-scan base-package="com.example.service" />
+      <!-- <context:component-scan base-package="com.four.server.bsm" />
+     -->
+    <!--
+    Quartz定时任务配置：使用MethodInvokingJobDetailFactoryBean，任务类可以不实现Job接口，通过targetMethod指定调用方法
+
+    cron表达式：* * * * * *（共6位，使用空格隔开，具体如下）
+    cron表达式：*(秒0-59) *(分钟0-59) *(小时0-23) *(日期1-31) *(月份1-12或是JAN-DEC) *(星期1-7或是SUN-SAT)
+    -->  
+	 <bean id="quartzTask" class="com.four.server.quartz.QuartzTask">
+	</bean>
+    <!-- ===================== 定义目标bean和bean中的方法 ===================== -->
+    <!-- 定时任务：persistRecord -->
+    <bean id="persistRecordJobMethod" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="quartzTask"/>
+        <property name="targetMethod" value="convertDataTask"/>
+        <property name="concurrent" value="false"/>
+    </bean>
+    <!-- ======================== 调度触发器 ======================== -->
+    <bean id="persistRecordJobMethodCronTriggerBean" class="org.springframework.scheduling.quartz.CronTriggerBean">
+        <property name="jobDetail" ref="persistRecordJobMethod"/>
+        <property name="startDelay" value="1000"/>
+        <!--<property name="cronExpression" 0/10 * * * * ?"0 0 * * * ?/>-->
+        <property name="cronExpression" value="0 0 * * * ?"/>
+    </bean>
+
+
+    <!-- ======================== 调度工厂 ======================== -->
+    <bean id="schedulerFactoryBean" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="dataSource"><null/></property> <!-- 数据源设置为null，否则报错 -->
+        <property name="triggers">
+            <list>
+                <ref bean="persistRecordJobMethodCronTriggerBean"/>
+            </list>
+        </property>
+        <property name="quartzProperties">
+            <props>
+                <prop key="org.quartz.scheduler.skipUpdateCheck">true</prop>
+                <prop key="org.quartz.jobStore.class">org.quartz.simpl.RAMJobStore</prop>
+            </props>
+        </property>
+    </bean>
+    
+	<bean id="dataSource"
+		class="com.alibaba.druid.pool.DruidDataSource">
+		<property name="url" value="jdbc:mysql://localhost:3306/ruvs_1.0?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=GMT%2B8&amp;useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10"/>
+		<property name="username" value="root"/>
+		<property name="password" value="123456"/>
+	</bean>
+	
+	<!-- 注册属性文件 -->
+	
+
+         <bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		 <property name="dataSource" ref="dataSource" /> 
+         <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+                <prop key="hibernate.show.sql">true</prop>
+                <prop key="hibernate.format_sql">true</prop>
+                <prop key="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider</prop>
+            </props>
+        </property>  
+	</bean>
+	<!-- 配置事务管理器 -->
+	<bean id="transaction" class="org.springframework.orm.hibernate3.HibernateTransactionManager" >
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+</beans>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 设备相关信息处理 -->
+<mapper namespace="com.four.server.exdsm.SynInterfaceDsm">
+    <!-- 查询部门 -->
+    <select id="querySyncRecord" resultType="syncRecordTpm">
+        <if test="pager!=null">
+            <include refid="com.hanvon.iface.dsm.common.Common.pager_head"/>
+            <choose>
+                <when test="pager != null and pager.dbSorts != null and pager.dbSorts.size() > 0">
+                    <foreach item="item" collection="pager.dbSorts" open="order by " separator=",">
+                        ${item.sortField} ${item.sortMode}
+                    </foreach>
+                </when>
+                <otherwise>
+                    order by recID ASC
+                </otherwise>
+            </choose>
+            <include refid="com.hanvon.iface.dsm.common.Common.pager_middle"/>
+        </if>
+
+        SELECT
+        sr.f_RecID as recID,
+        sr.f_ReadDate as readDate,
+        sr.f_ConsumerID as consumerID,
+        sr.f_Modified as modifiedDate,
+        co.f_CertificateID as certificateID
+        FROM t_d_SwipeRecord sr
+        LEFT JOIN t_b_Consumer_Other co on co.f_ConsumerID=sr.f_ConsumerID
+        <if test="syncRecordQuery!=null">
+            <where>
+                <if test="syncRecordQuery.recID != null">
+                    and sr.f_RecID > #{syncRecordQuery.recID}
+                </if>
+                <if test="syncRecordQuery.modifiedDate != null">
+                    and sr.f_Modified > #{syncRecordQuery.modifiedDate}
+                </if>
+            </where>
+        </if>
+
+        <if test="pager!=null">
+            <include refid="com.hanvon.iface.dsm.common.Common.pager_tail"/>
+        </if>
+    </select>
+</mapper> 

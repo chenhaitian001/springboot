@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.four.server.dsm.SystemDsm">
+    <!-- 获取一条系统配置信息 -->
+    <select id="getSystemConfig" resultType="keyValueTpm">
+        SELECT
+        sz_key AS 'key',
+        tx_value AS 'value',
+        sz_descr AS 'description'
+        FROM sys_config
+        WHERE sz_key=#{key}
+    </select>
+
+    <!--mysql的insert into ... on duplicate key插入时如果key（PK、UK）冲突，则执行更新-->
+    <insert id="saveSystemConfig">
+        insert into sys_config(sz_key, tx_value, ng_creator, ts_create)
+        values
+        <foreach collection="kvs" item="keyValue" separator=",">
+            (#{keyValue.key}, #{keyValue.value}, #{userId}, CURRENT_TIMESTAMP)
+        </foreach>
+        on duplicate key
+        update tx_value = values(tx_value)
+    </insert>
+</mapper>
+
